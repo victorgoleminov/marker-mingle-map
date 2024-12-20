@@ -36,9 +36,9 @@ export function LocationMarker({ location }: LocationMarkerProps) {
   const customIcon = new L.DivIcon({
     html: markerHtml,
     className: 'custom-marker',
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40]
+    iconSize: L.point(40, 40),
+    iconAnchor: L.point(20, 40),
+    popupAnchor: L.point(0, -40)
   });
 
   return (
