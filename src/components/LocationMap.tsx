@@ -45,10 +45,10 @@ const LocationMap = () => {
   return (
     <div className="relative w-full h-screen">
       <MapContainer
-        center={defaultPosition}
+        defaultCenter={defaultPosition}
         zoom={13}
         className="w-full h-full"
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

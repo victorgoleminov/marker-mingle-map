@@ -33,7 +33,7 @@ export function LocationMarker({ location }: LocationMarkerProps) {
   markerHtml.appendChild(avatar);
 
   // Create custom icon
-  const customIcon = L.divIcon({
+  const customIcon = new L.DivIcon({
     html: markerHtml,
     className: 'custom-marker',
     iconSize: [40, 40],
