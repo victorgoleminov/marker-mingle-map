@@ -17,7 +17,9 @@ L.Icon.Default.mergeOptions({
 const MapUpdater = ({ center }: { center: [number, number] }) => {
   const map = useMap();
   React.useEffect(() => {
-    map.setView(center, map.getZoom());
+    if (map) {
+      map.setView(center);
+    }
   }, [center, map]);
   return null;
 };
@@ -32,12 +34,16 @@ const LocationMap = () => {
     toggleLocationSharing,
   } = useLocationTracking();
 
+  // Set default position to a fallback location if no position is available
+  const defaultPosition: [number, number] = position || [51.505, -0.09];
+
   return (
     <div className="relative w-full h-screen">
       <MapContainer
-        defaultCenter={position || [0, 0]}
+        center={defaultPosition}
         zoom={13}
         className="w-full h-full"
+        key={defaultPosition.join(',')} // Force re-render when position changes
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
