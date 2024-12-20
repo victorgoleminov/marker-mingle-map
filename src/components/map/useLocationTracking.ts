@@ -44,7 +44,9 @@ export const useLocationTracking = () => {
       async (position) => {
         const { latitude, longitude } = position.coords;
         setPosition([latitude, longitude]);
-        await updateLocation(latitude, longitude);
+        if (isSharing) {
+          await updateLocation(latitude, longitude);
+        }
         setLoading(false);
       },
       (error) => {
@@ -58,6 +60,7 @@ export const useLocationTracking = () => {
     if (!session?.user) return;
 
     try {
+      // Update profile sharing status
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ is_sharing_location: !isSharing })
@@ -85,6 +88,7 @@ export const useLocationTracking = () => {
           clearInterval(locationInterval);
           setLocationInterval(null);
         }
+        setPosition(null);
         toast.success('Location sharing disabled');
       }
     } catch (error) {
@@ -125,42 +129,42 @@ export const useLocationTracking = () => {
       };
 
       fetchInitialData();
-    }
 
-    // Subscribe to location changes
-    const channel = supabase
-      .channel('locations')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'locations',
-          filter: 'is_active=eq.true'
-        },
-        async () => {
-          const { data, error } = await supabase
-            .from('locations')
-            .select('*, profiles(username, avatar_url)')
-            .eq('is_active', true)
-            .order('updated_at', { ascending: false });
-          
-          if (error) {
-            console.error('Error fetching locations:', error);
-            return;
+      // Subscribe to location changes
+      const channel = supabase
+        .channel('locations')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'locations',
+            filter: 'is_active=eq.true'
+          },
+          async () => {
+            const { data, error } = await supabase
+              .from('locations')
+              .select('*, profiles(username, avatar_url)')
+              .eq('is_active', true)
+              .order('updated_at', { ascending: false });
+            
+            if (error) {
+              console.error('Error fetching locations:', error);
+              return;
+            }
+            
+            setLocations(data);
           }
-          
-          setLocations(data);
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    return () => {
-      if (locationInterval) {
-        clearInterval(locationInterval);
-      }
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        if (locationInterval) {
+          clearInterval(locationInterval);
+        }
+        supabase.removeChannel(channel);
+      };
+    }
   }, [session]);
 
   return {
