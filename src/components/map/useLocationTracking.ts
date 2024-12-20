@@ -116,7 +116,7 @@ export const useLocationTracking = () => {
           const { data, error } = await supabase
             .from('locations')
             .select('*, profiles(username, avatar_url)')
-            .order('updated_at.desc');
+            .order('updated_at', { ascending: false }); // Fixed the ordering here
           
           if (error) {
             console.error('Error fetching locations:', error);
