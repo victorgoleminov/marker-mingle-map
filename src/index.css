@@ -49,3 +49,17 @@
 .copy-button {
   @apply fixed bottom-24 right-6 z-[1000] bg-white text-primary p-4 rounded-full shadow-lg hover:bg-gray-50 transition-colors;
 }
+
+/* Custom marker styles */
+.custom-marker {
+  @apply relative;
+}
+
+.custom-marker img {
+  @apply rounded-full;
+}
+
+.leaflet-marker-icon {
+  background: none !important;
+  border: none !important;
+}
