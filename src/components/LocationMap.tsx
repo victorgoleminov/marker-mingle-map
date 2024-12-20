@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, Popup } from 'react-leaflet';
 import { toast } from 'sonner';
-import { Loader2, Compass, Copy } from 'lucide-react';
+import { Loader2, Compass, Copy, Share2, Eye, EyeOff } from 'lucide-react';
 import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -23,6 +25,7 @@ interface Location {
   updated_at: string;
   profiles: {
     username: string;
+    avatar_url: string | null;
   };
 }
 
@@ -39,6 +42,27 @@ const LocationMap = () => {
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [loading, setLoading] = useState(false);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [isSharing, setIsSharing] = useState(false);
+  const [locationInterval, setLocationInterval] = useState<number | null>(null);
+
+  const updateLocation = async (latitude: number, longitude: number) => {
+    if (!session?.user) return;
+
+    try {
+      const { error } = await supabase
+        .from('locations')
+        .upsert({
+          user_id: session.user.id,
+          latitude,
+          longitude,
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating location:', error);
+      toast.error('Failed to update location');
+    }
+  };
 
   const getLocation = () => {
     setLoading(true);
@@ -52,25 +76,7 @@ const LocationMap = () => {
       async (position) => {
         const { latitude, longitude } = position.coords;
         setPosition([latitude, longitude]);
-        
-        if (session?.user) {
-          try {
-            const { error } = await supabase
-              .from('locations')
-              .upsert({
-                user_id: session.user.id,
-                latitude,
-                longitude,
-              });
-
-            if (error) throw error;
-            toast.success('Location updated successfully');
-          } catch (error) {
-            console.error('Error updating location:', error);
-            toast.error('Failed to update location');
-          }
-        }
-        
+        await updateLocation(latitude, longitude);
         setLoading(false);
       },
       (error) => {
@@ -78,6 +84,37 @@ const LocationMap = () => {
         setLoading(false);
       }
     );
+  };
+
+  const toggleLocationSharing = async () => {
+    if (!session?.user) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_sharing_location: !isSharing })
+        .eq('id', session.user.id);
+
+      if (error) throw error;
+
+      setIsSharing(!isSharing);
+      
+      if (!isSharing) {
+        getLocation();
+        const interval = window.setInterval(getLocation, 10000); // Update every 10 seconds
+        setLocationInterval(interval);
+        toast.success('Location sharing enabled');
+      } else {
+        if (locationInterval) {
+          clearInterval(locationInterval);
+          setLocationInterval(null);
+        }
+        toast.success('Location sharing disabled');
+      }
+    } catch (error) {
+      console.error('Error toggling location sharing:', error);
+      toast.error('Failed to update location sharing settings');
+    }
   };
 
   const copyLocation = () => {
@@ -94,7 +131,24 @@ const LocationMap = () => {
   };
 
   useEffect(() => {
-    getLocation();
+    if (session?.user) {
+      // Get initial sharing status
+      supabase
+        .from('profiles')
+        .select('is_sharing_location')
+        .eq('id', session.user.id)
+        .single()
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setIsSharing(data.is_sharing_location);
+            if (data.is_sharing_location) {
+              getLocation();
+              const interval = window.setInterval(getLocation, 10000);
+              setLocationInterval(interval);
+            }
+          }
+        });
+    }
 
     // Subscribe to location updates
     const channel = supabase
@@ -110,7 +164,7 @@ const LocationMap = () => {
           // Fetch updated locations
           const { data, error } = await supabase
             .from('locations')
-            .select('*, profiles(username)')
+            .select('*, profiles(username, avatar_url)')
             .order('updated_at.desc');
           
           if (error) {
@@ -124,9 +178,12 @@ const LocationMap = () => {
       .subscribe();
 
     return () => {
+      if (locationInterval) {
+        clearInterval(locationInterval);
+      }
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [session]);
 
   return (
     <div className="relative w-full h-screen">
@@ -142,7 +199,19 @@ const LocationMap = () => {
         {locations.map((loc) => (
           <Marker key={loc.id} position={[loc.latitude, loc.longitude]}>
             <Popup>
-              {loc.profiles?.username || 'Unknown user'}
+              <div className="flex flex-col items-center gap-2">
+                {loc.profiles?.avatar_url && (
+                  <img
+                    src={loc.profiles.avatar_url}
+                    alt={loc.profiles?.username || 'User'}
+                    className="w-8 h-8 rounded-full"
+                  />
+                )}
+                <span>{loc.profiles?.username || 'Unknown user'}</span>
+                <span className="text-sm text-gray-500">
+                  Last updated: {new Date(loc.updated_at).toLocaleTimeString()}
+                </span>
+              </div>
             </Popup>
           </Marker>
         ))}
@@ -157,27 +226,43 @@ const LocationMap = () => {
       </MapContainer>
 
       <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-        <button
-          onClick={getLocation}
-          className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-100"
-          disabled={loading}
-          aria-label="Get current location"
-        >
-          {loading ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
-          ) : (
-            <Compass className="h-6 w-6" />
-          )}
-        </button>
-
-        <button
-          onClick={copyLocation}
-          className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-100"
-          disabled={!position}
-          aria-label="Copy location coordinates"
-        >
-          <Copy className="h-6 w-6" />
-        </button>
+        <div className="bg-white p-4 rounded-lg shadow-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Switch
+              checked={isSharing}
+              onCheckedChange={toggleLocationSharing}
+              aria-label="Toggle location sharing"
+            />
+            <span className="text-sm">
+              {isSharing ? 'Sharing location' : 'Location sharing off'}
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={getLocation}
+              className="w-full"
+              disabled={loading}
+              size="sm"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Compass className="h-4 w-4" />
+              )}
+              <span className="ml-2">Update location</span>
+            </Button>
+            <Button
+              onClick={copyLocation}
+              className="w-full"
+              disabled={!position}
+              variant="outline"
+              size="sm"
+            >
+              <Copy className="h-4 w-4" />
+              <span className="ml-2">Copy coordinates</span>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

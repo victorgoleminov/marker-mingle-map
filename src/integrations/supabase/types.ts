@@ -9,9 +9,49 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      friends: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friends_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friends_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           id: string
+          is_active: boolean | null
           latitude: number
           longitude: number
           updated_at: string
@@ -19,6 +59,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          is_active?: boolean | null
           latitude: number
           longitude: number
           updated_at?: string
@@ -26,6 +67,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          is_active?: boolean | null
           latitude?: number
           longitude?: number
           updated_at?: string
@@ -46,19 +88,25 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           id: string
+          is_sharing_location: boolean | null
           username: string | null
+          visibility: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           id: string
+          is_sharing_location?: boolean | null
           username?: string | null
+          visibility?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          is_sharing_location?: boolean | null
           username?: string | null
+          visibility?: string | null
         }
         Relationships: []
       }
