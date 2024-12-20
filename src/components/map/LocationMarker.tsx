@@ -5,6 +5,7 @@ import { MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { ChatDialog } from '../chat/ChatDialog';
 import type { Location } from './types';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface LocationMarkerProps {
   location: Location;
@@ -13,14 +14,31 @@ interface LocationMarkerProps {
 export function LocationMarker({ location }: LocationMarkerProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const customIcon = new L.Icon({
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
+  // Create a custom div element for the marker
+  const markerHtml = document.createElement('div');
+  markerHtml.className = 'custom-marker';
+  
+  // Create the avatar element
+  const avatar = document.createElement('div');
+  avatar.className = 'w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-lg';
+  
+  // Create and style the image
+  const img = document.createElement('img');
+  img.src = location.profiles?.avatar_url || '/placeholder.svg';
+  img.className = 'w-full h-full object-cover';
+  img.alt = location.profiles?.username || 'User avatar';
+  
+  // Append elements
+  avatar.appendChild(img);
+  markerHtml.appendChild(avatar);
+
+  // Create custom icon
+  const customIcon = L.divIcon({
+    html: markerHtml,
+    className: 'custom-marker',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40]
   });
 
   return (
@@ -30,8 +48,12 @@ export function LocationMarker({ location }: LocationMarkerProps) {
         icon={customIcon}
       >
         <Popup>
-          <div className="flex flex-col gap-2">
-            <p>{location.profiles?.username || "Unknown user"}</p>
+          <div className="flex flex-col items-center gap-2 p-2">
+            <Avatar className="w-16 h-16">
+              <AvatarImage src={location.profiles?.avatar_url || '/placeholder.svg'} alt={location.profiles?.username || 'User'} />
+              <AvatarFallback>{(location.profiles?.username || 'U')[0].toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <p className="font-medium">{location.profiles?.username || "Unknown user"}</p>
             <Button
               onClick={() => setIsChatOpen(true)}
               variant="outline"
