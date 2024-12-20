@@ -42,17 +42,9 @@
   height: 100vh;
 }
 
-.location-button {
-  @apply fixed bottom-6 right-6 z-[1000] bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors;
-}
-
-.copy-button {
-  @apply fixed bottom-24 right-6 z-[1000] bg-white text-primary p-4 rounded-full shadow-lg hover:bg-gray-50 transition-colors;
-}
-
 /* Custom marker styles */
 .custom-marker {
-  @apply relative;
+  @apply relative z-[500];
 }
 
 .custom-marker img {
@@ -62,4 +54,14 @@
 .leaflet-marker-icon {
   background: none !important;
   border: none !important;
+}
+
+/* Ensure popups are above markers */
+.leaflet-popup {
+  @apply z-[600];
+}
+
+/* Ensure controls are above everything */
+.leaflet-control-container {
+  @apply z-[700];
 }

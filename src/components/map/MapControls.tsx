@@ -32,7 +32,7 @@ export const MapControls = ({
   };
 
   return (
-    <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+    <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-[1000]">
       <div className="bg-white p-4 rounded-lg shadow-lg">
         <div className="flex items-center gap-2 mb-2">
           <Switch

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { LocationMarker } from './map/LocationMarker';
@@ -43,7 +43,7 @@ const LocationMap = () => {
         center={defaultPosition}
         zoom={13}
         className="w-full h-full"
-        key={defaultPosition.join(',')} // Force re-render when position changes
+        key={defaultPosition.join(',')}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

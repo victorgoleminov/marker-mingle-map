@@ -26,7 +26,10 @@ export const LocationMarker = ({ location }: LocationMarkerProps) => {
   });
 
   return (
-    <Marker position={[location.latitude, location.longitude]} icon={customIcon}>
+    <Marker 
+      position={[location.latitude, location.longitude]} 
+      icon={customIcon}
+    >
       <Popup>
         <div className="flex flex-col items-center gap-2 p-2">
           <Avatar className="w-16 h-16">
