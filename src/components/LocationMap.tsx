@@ -40,7 +40,7 @@ const LocationMap = () => {
   // Filter out the current user's location from the locations array
   // to prevent showing duplicate markers
   const otherLocations = locations.filter(
-    loc => loc.user_id !== position ? 'current' : undefined
+    loc => loc.user_id !== (position ? 'current' : undefined)
   );
 
   return (
@@ -58,7 +58,7 @@ const LocationMap = () => {
         {otherLocations.map((loc) => (
           <LocationMarker key={loc.id} location={loc} />
         ))}
-        {position && (
+        {position && isSharing && (
           <>
             <LocationMarker
               location={{
