@@ -22,6 +22,7 @@ export const useLocationTracking = () => {
           user_id: session.user.id,
           latitude,
           longitude,
+          is_active: true,
         });
 
       if (error) throw error;
@@ -57,12 +58,20 @@ export const useLocationTracking = () => {
     if (!session?.user) return;
 
     try {
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ is_sharing_location: !isSharing })
         .eq('id', session.user.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Update location active status
+      const { error: locationError } = await supabase
+        .from('locations')
+        .update({ is_active: !isSharing })
+        .eq('user_id', session.user.id);
+
+      if (locationError) throw locationError;
 
       setIsSharing(!isSharing);
       
@@ -86,23 +95,39 @@ export const useLocationTracking = () => {
 
   useEffect(() => {
     if (session?.user) {
-      supabase
-        .from('profiles')
-        .select('is_sharing_location')
-        .eq('id', session.user.id)
-        .single()
-        .then(({ data, error }) => {
-          if (!error && data) {
-            setIsSharing(data.is_sharing_location);
-            if (data.is_sharing_location) {
-              getLocation();
-              const interval = window.setInterval(getLocation, 10000);
-              setLocationInterval(interval);
-            }
+      // Get initial sharing status and active locations
+      const fetchInitialData = async () => {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('is_sharing_location')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileData) {
+          setIsSharing(profileData.is_sharing_location);
+          if (profileData.is_sharing_location) {
+            getLocation();
+            const interval = window.setInterval(getLocation, 10000);
+            setLocationInterval(interval);
           }
-        });
+        }
+
+        // Fetch initial active locations
+        const { data: locationsData } = await supabase
+          .from('locations')
+          .select('*, profiles(username, avatar_url)')
+          .eq('is_active', true)
+          .order('updated_at', { ascending: false });
+
+        if (locationsData) {
+          setLocations(locationsData);
+        }
+      };
+
+      fetchInitialData();
     }
 
+    // Subscribe to location changes
     const channel = supabase
       .channel('locations')
       .on(
@@ -110,13 +135,15 @@ export const useLocationTracking = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'locations'
+          table: 'locations',
+          filter: 'is_active=eq.true'
         },
         async () => {
           const { data, error } = await supabase
             .from('locations')
             .select('*, profiles(username, avatar_url)')
-            .order('updated_at', { ascending: false }); // Fixed the ordering here
+            .eq('is_active', true)
+            .order('updated_at', { ascending: false });
           
           if (error) {
             console.error('Error fetching locations:', error);
