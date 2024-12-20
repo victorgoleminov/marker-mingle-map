@@ -131,14 +131,13 @@ const LocationMap = () => {
   return (
     <div className="relative w-full h-screen">
       <MapContainer
-        defaultCenter={[0, 0]}
         center={position || [0, 0]}
         zoom={13}
         className="w-full h-full"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         {locations.map((loc) => (
           <Marker key={loc.id} position={[loc.latitude, loc.longitude]}>
