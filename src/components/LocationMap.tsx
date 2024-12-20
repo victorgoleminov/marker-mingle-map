@@ -49,6 +49,7 @@ const LocationMap = () => {
         zoom={13}
         className="w-full h-full"
         scrollWheelZoom={true}
+        attributionControl={true}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

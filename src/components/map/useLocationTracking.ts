@@ -23,6 +23,7 @@ export const useLocationTracking = () => {
           latitude,
           longitude,
           is_active: true,
+          updated_at: new Date().toISOString(),
         });
 
       if (error) throw error;
@@ -60,25 +61,32 @@ export const useLocationTracking = () => {
     if (!session?.user) return;
 
     try {
+      const newSharingState = !isSharing;
+      
+      // Update location active status
+      const { error: locationError } = await supabase
+        .from('locations')
+        .upsert({
+          user_id: session.user.id,
+          is_active: newSharingState,
+          latitude: position ? position[0] : 0,
+          longitude: position ? position[1] : 0,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (locationError) throw locationError;
+
       // Update profile sharing status
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ is_sharing_location: !isSharing })
+        .update({ is_sharing_location: newSharingState })
         .eq('id', session.user.id);
 
       if (profileError) throw profileError;
 
-      // Update location active status
-      const { error: locationError } = await supabase
-        .from('locations')
-        .update({ is_active: !isSharing })
-        .eq('user_id', session.user.id);
-
-      if (locationError) throw locationError;
-
-      setIsSharing(!isSharing);
+      setIsSharing(newSharingState);
       
-      if (!isSharing) {
+      if (newSharingState) {
         getLocation();
         const interval = window.setInterval(getLocation, 10000);
         setLocationInterval(interval);
