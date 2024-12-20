@@ -49,11 +49,10 @@ const LocationMap = () => {
         zoom={13}
         className="w-full h-full"
         scrollWheelZoom={true}
-        attributionControl={true}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attributionControl={true}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         {activeLocations.map((loc) => (
           <LocationMarker key={loc.id} location={loc} />

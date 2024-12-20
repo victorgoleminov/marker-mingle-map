@@ -120,8 +120,7 @@ export const useLocationTracking = () => {
         const { data: locationsData } = await supabase
           .from('locations')
           .select('*, profiles(username, avatar_url)')
-          .eq('is_active', true)
-          .order('updated_at', { ascending: false });
+          .eq('is_active', true);
 
         if (locationsData) {
           setLocations(locationsData);
@@ -145,8 +144,7 @@ export const useLocationTracking = () => {
             const { data, error } = await supabase
               .from('locations')
               .select('*, profiles(username, avatar_url)')
-              .eq('is_active', true)
-              .order('updated_at', { ascending: false });
+              .eq('is_active', true);
             
             if (error) {
               console.error('Error fetching locations:', error);
