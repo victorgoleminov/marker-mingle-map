@@ -41,12 +41,11 @@ export function LocationMarker({ location }: LocationMarkerProps) {
     popupAnchor: L.point(0, -40)
   });
 
+  const position: L.LatLngExpression = [location.latitude, location.longitude];
+
   return (
     <>
-      <Marker 
-        position={[location.latitude, location.longitude]} 
-        icon={customIcon}
-      >
+      <Marker position={position} icon={customIcon}>
         <Popup>
           <div className="flex flex-col items-center gap-2 p-2">
             <Avatar className="w-16 h-16">

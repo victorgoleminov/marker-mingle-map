@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const MapUpdater = ({ center }: { center: [number, number] }) => {
+const MapUpdater = ({ center }: { center: L.LatLngExpression }) => {
   const map = useMap();
   React.useEffect(() => {
     if (map) {
@@ -35,7 +35,7 @@ const LocationMap = () => {
   } = useLocationTracking();
 
   // Set default position to a fallback location if no position is available
-  const defaultPosition: [number, number] = position || [51.505, -0.09];
+  const defaultPosition: L.LatLngExpression = position || [51.505, -0.09];
 
   // Filter out inactive locations and the current user's location
   const activeLocations = locations.filter(
@@ -52,8 +52,8 @@ const LocationMap = () => {
         attributionControl={true}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {activeLocations.map((loc) => (
           <LocationMarker key={loc.id} location={loc} />
