@@ -40,14 +40,14 @@ const LocationMap = () => {
   return (
     <div className="relative w-full h-screen">
       <MapContainer
-        center={defaultPosition}
+        defaultCenter={defaultPosition}
         zoom={13}
         className="w-full h-full"
         scrollWheelZoom={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         {locations.map((loc) => (
           <LocationMarker key={loc.id} location={loc} />
