@@ -40,7 +40,7 @@ const LocationMap = () => {
   return (
     <div className="relative w-full h-screen">
       <MapContainer
-        defaultCenter={defaultPosition}
+        center={defaultPosition}
         zoom={13}
         className="w-full h-full"
         scrollWheelZoom={false}
