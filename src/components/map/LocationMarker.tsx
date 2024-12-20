@@ -1,52 +1,54 @@
 import { Marker, Popup } from 'react-leaflet';
-import { Location } from './types';
 import L from 'leaflet';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from '../ui/button';
+import { MessageCircle } from 'lucide-react';
+import { useState } from 'react';
+import { ChatDialog } from '../chat/ChatDialog';
+import type { Location } from './types';
 
 interface LocationMarkerProps {
   location: Location;
 }
 
-export const LocationMarker = ({ location }: LocationMarkerProps) => {
-  // Create a custom icon for the marker
-  const customIcon = L.divIcon({
-    className: 'custom-marker',
-    html: `
-      <div class="w-12 h-12 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
-        <img 
-          src="${location.profiles?.avatar_url || '/placeholder.svg'}" 
-          alt="${location.profiles?.username || 'User'}"
-          class="w-full h-full object-cover"
-        />
-      </div>
-    `,
-    iconSize: [48, 48],
-    iconAnchor: [24, 48],
-    popupAnchor: [0, -48]
+export function LocationMarker({ location }: LocationMarkerProps) {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const customIcon = L.icon({
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
   });
 
   return (
-    <Marker 
-      position={[location.latitude, location.longitude]} 
-      icon={customIcon}
-    >
-      <Popup>
-        <div className="flex flex-col items-center gap-2 p-2">
-          <Avatar className="w-16 h-16">
-            <AvatarImage 
-              src={location.profiles?.avatar_url || undefined} 
-              alt={location.profiles?.username || 'User'} 
-            />
-            <AvatarFallback>
-              {location.profiles?.username?.charAt(0).toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <span className="font-medium">{location.profiles?.username || 'Unknown user'}</span>
-          <span className="text-sm text-gray-500">
-            Last updated: {new Date(location.updated_at).toLocaleTimeString()}
-          </span>
-        </div>
-      </Popup>
-    </Marker>
+    <>
+      <Marker 
+        position={[location.latitude, location.longitude]} 
+        icon={customIcon}
+      >
+        <Popup>
+          <div className="flex flex-col gap-2">
+            <p>{location.profiles?.username || "Unknown user"}</p>
+            <Button
+              onClick={() => setIsChatOpen(true)}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Chat
+            </Button>
+          </div>
+        </Popup>
+      </Marker>
+      
+      <ChatDialog
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        recipientId={location.user_id}
+        recipientName={location.profiles?.username || "Unknown user"}
+      />
+    </>
   );
-};
+}
