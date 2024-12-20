@@ -37,10 +37,9 @@ const LocationMap = () => {
   // Set default position to a fallback location if no position is available
   const defaultPosition: [number, number] = position || [51.505, -0.09];
 
-  // Filter out the current user's location from the locations array
-  // to prevent showing duplicate markers
-  const otherLocations = locations.filter(
-    loc => loc.user_id !== (position ? 'current' : undefined)
+  // Filter out inactive locations and the current user's location
+  const activeLocations = locations.filter(
+    loc => loc.is_active && loc.user_id !== (position ? 'current' : undefined)
   );
 
   return (
@@ -55,7 +54,7 @@ const LocationMap = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {otherLocations.map((loc) => (
+        {activeLocations.map((loc) => (
           <LocationMarker key={loc.id} location={loc} />
         ))}
         {position && isSharing && (
@@ -67,6 +66,7 @@ const LocationMap = () => {
                 latitude: position[0],
                 longitude: position[1],
                 updated_at: new Date().toISOString(),
+                is_active: true,
                 profiles: {
                   username: 'Your location',
                   avatar_url: null,
